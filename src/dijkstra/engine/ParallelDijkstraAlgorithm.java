@@ -47,7 +47,7 @@ import dijkstra.model.Vertex;
 
 public class ParallelDijkstraAlgorithm {
 	
-	private static final int MAX_PROCESSING_SPLIT_COUNT = 2;
+	private static final int MAX_PROCESSING_SPLIT_COUNT = 1;
 	
 	private Set<Vertex> settled_nodes;
 	private Map<Vertex, Vertex> predecessors;
@@ -252,7 +252,7 @@ public class ParallelDijkstraAlgorithm {
 			 */
 			
 			boolean reexecuting = !inForkJoinPool();
-									
+												
 			while (true) {
 				
 				/* Skip this section if we are reentering the compute() to
@@ -280,22 +280,21 @@ public class ParallelDijkstraAlgorithm {
 												
 						break; /* Shouldn't see this, but just in case ... */
 					}
-				}
-
-				/*
-				 * Wait for all of the leaves to reach this common point. This
-				 * will signal the completion of processing.
-				 */
-				
-				try {
-					if(false == reexecuting)
+					
+					/*
+					 * Wait for all of the leaves to reach this common point.
+					 * This signals the completion of processing.
+					 */
+					
+					try {
 						leaves_done_barrier.await();
-				} catch (InterruptedException ex) {
-					return;
-				} catch (BrokenBarrierException ex) {
-					return;
+					} catch (InterruptedException ex) {
+						return;
+					} catch (BrokenBarrierException ex) {
+						return;
+					}
 				}
-				
+						
 				/*
 				 * Wait for reexecution triggered by calling compute() from a
 				 * thread outside the fork/join pool.
@@ -320,7 +319,7 @@ public class ParallelDijkstraAlgorithm {
 			/* Called once per round as part of the functionality of 
 			 * leaves_done_barrier. */
 			
-			public void run() {
+			public void run() {				
 				try {
 					notify_queue.put(1);
 				} catch (Exception e) {

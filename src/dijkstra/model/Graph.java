@@ -134,7 +134,7 @@ public class Graph {
 			for (Vertex vertex : vertexes)
 				adjacencies.put(vertex, getVertexAdjacencies(vertex));
 
-			// Fork/Join
+			// Fork/Join. Comment out above 'for' to try it.
 
 //			adjacencies = fork_join_pool
 //					.invoke(new VertexAdjacenciesTask(vertexes));
