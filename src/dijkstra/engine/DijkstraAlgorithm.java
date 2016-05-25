@@ -16,7 +16,6 @@ package dijkstra.engine;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +59,6 @@ public class DijkstraAlgorithm {
 		new PriorityQueue<UnsettledNode>();
 	
 	private Map<Vertex, Integer> distances_from_source;
-	private Set<Vertex> settledNodes;
 	private Map<Vertex, Vertex> predecessors;
 	
 	public DijkstraAlgorithm(final Graph graph) {
@@ -98,6 +96,7 @@ public class DijkstraAlgorithm {
 	public void execute(final Vertex source) {
 		predecessors = 
 			new HashMap<Vertex, Vertex>(nodes.size());
+		
 		distances_from_source = 
 			new HashMap<Vertex, Integer>(nodes.size());
 		distances_from_source.put(source, 0);
@@ -106,9 +105,8 @@ public class DijkstraAlgorithm {
 				
 		while(false == unsettled_nodes_queue.isEmpty()) {
 			UnsettledNode us_node = unsettled_nodes_queue.poll();
-			Vertex node = us_node.node;
-			predecessors.put(node, us_node.predecessor);
-			findMinimalDistances(node);
+			predecessors.put(us_node.node, us_node.predecessor);
+			findMinimalDistances(us_node.node);
 		}
 	}
 	
@@ -164,4 +162,3 @@ public class DijkstraAlgorithm {
 		return getPath(nodes.get(node_num));
 	}
 }
-
