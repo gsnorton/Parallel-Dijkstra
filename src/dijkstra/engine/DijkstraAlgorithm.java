@@ -14,6 +14,7 @@
 package dijkstra.engine;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -33,9 +34,17 @@ public class DijkstraAlgorithm {
 
 		private final int distance;
 		private final Vertex node;
+		private final Vertex predecessor;
+		
+		public UnsettledNode(final int distance, final Vertex node,
+					         final Vertex predecessor) {
+			this.distance = distance; 
+			this.node = node;
+			this.predecessor = predecessor;
+		}
 		
 		public UnsettledNode(final int distance, final Vertex node) {
-			this.distance = distance; this.node = node;
+			this(distance, node, null);
 		}
 
 		@Override
@@ -47,12 +56,12 @@ public class DijkstraAlgorithm {
 	private final List<Vertex> nodes;
 	private final Map<Vertex, List<Edge>> adjacencies;
 	
-	private Map<Vertex, Vertex> predecessors;
-
-	private Queue<UnsettledNode> unsettled_nodes_queue;
-	private Map<Vertex, Integer> distances_from_source;
+	private Queue<UnsettledNode> unsettled_nodes_queue =
+		new PriorityQueue<UnsettledNode>();
 	
-	private Set<Vertex> settledNodes = new HashSet<Vertex>();
+	private Map<Vertex, Integer> distances_from_source;
+	private Set<Vertex> settledNodes;
+	private Map<Vertex, Vertex> predecessors;
 	
 	public DijkstraAlgorithm(final Graph graph) {
 		nodes = new ArrayList<Vertex>(graph.getVertexes());
@@ -62,6 +71,15 @@ public class DijkstraAlgorithm {
 	public DijkstraAlgorithm(final DijkstraAlgorithm other) {
 		nodes = new ArrayList<Vertex>(other.nodes);
 		adjacencies = new HashMap<Vertex, List<Edge>>(other.adjacencies);
+	}
+
+	private List<Vertex> getNeighbors(final Vertex node) {
+		LinkedList<Vertex> node_neighbors = new LinkedList<Vertex>();
+		
+		for(Edge edge : adjacencies.get(node))
+			node_neighbors.add(edge.getDestination());
+				
+		return node_neighbors;
 	}
 	
 	public void removeNode(final int node_num) {
@@ -78,20 +96,18 @@ public class DijkstraAlgorithm {
 	}
 	
 	public void execute(final Vertex source) {
-		predecessors = new HashMap<Vertex, Vertex>();
-		
-		unsettled_nodes_queue = new PriorityQueue<UnsettledNode>();
-		distances_from_source = new HashMap<Vertex, Integer>();
-
-		unsettled_nodes_queue.add(new UnsettledNode(0, source));
+		predecessors = 
+			new HashMap<Vertex, Vertex>(nodes.size());
+		distances_from_source = 
+			new HashMap<Vertex, Integer>(nodes.size());
 		distances_from_source.put(source, 0);
 		
-		settledNodes.clear();
-		
+		unsettled_nodes_queue.add(new UnsettledNode(0, source));
+				
 		while(false == unsettled_nodes_queue.isEmpty()) {
 			UnsettledNode us_node = unsettled_nodes_queue.poll();
 			Vertex node = us_node.node;
-			settledNodes.add(node);
+			predecessors.put(node, us_node.predecessor);
 			findMinimalDistances(node);
 		}
 	}
@@ -101,13 +117,12 @@ public class DijkstraAlgorithm {
 	}
 
 	private void findMinimalDistances(final Vertex node) {
-		List<Vertex> adjacentNodes = getNeighbors(node);
-		for (Vertex target : adjacentNodes) {
-			int dist = getShortestDistance(node) + getDistance(node, target);
+		int shortest_dist_node = getShortestDistance(node);
+		for (Vertex target : getNeighbors(node)) {
+			int dist = shortest_dist_node + getDistance(node, target);
 			if (getShortestDistance(target) > dist) {
 				distances_from_source.put(target, dist);
-				predecessors.put(target, node);
-				unsettled_nodes_queue.add(new UnsettledNode(dist, target));
+				unsettled_nodes_queue.add(new UnsettledNode(dist, target, node));
 			}
 		}
 	}
@@ -120,23 +135,9 @@ public class DijkstraAlgorithm {
 		throw new RuntimeException("Should not happen");
 	}
 
-	private List<Vertex> getNeighbors(final Vertex node) {
-		List<Vertex> node_neighbors = new ArrayList<Vertex>();
-		
-		for(Edge edge : adjacencies.get(node))
-			if(!settledNodes.contains(edge.getDestination()))
-				node_neighbors.add(edge.getDestination());
-		
-		return node_neighbors;
-	}
-
 	private int getShortestDistance(final Vertex destination) {
 		Integer d = distances_from_source.get(destination);
-		if (d == null) {
-			return Integer.MAX_VALUE;
-		} else {
-			return d;
-		}
+		return (d == null) ? Integer.MAX_VALUE : d;
 	}
 
 	/*
@@ -148,15 +149,14 @@ public class DijkstraAlgorithm {
 		LinkedList<Vertex> path = new LinkedList<Vertex>();
 		Vertex step = target;
 		// check if a path exists
-		if (predecessors.get(step) == null) {
+		if (predecessors.get(step) == null)
 			return null;
-		}
 		path.add(step);
 		while (predecessors.get(step) != null) {
 			step = predecessors.get(step);
 			path.add(step);
 		}
-		return path;
+		return Collections.unmodifiableList(path);
 	}
 	
 	public List<Vertex> getPath(final int node_num)
