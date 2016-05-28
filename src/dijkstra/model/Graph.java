@@ -17,6 +17,7 @@
 package dijkstra.model;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -111,7 +112,7 @@ public class Graph {
 	/* -------------------------------------------------------------------- */
 	
 	private List<Edge> getVertexAdjacencies(final Vertex vertex) {
-		List<Edge> vertex_adjacencies = new ArrayList<Edge>();
+		List<Edge> vertex_adjacencies = new LinkedList<Edge>();
 		
 		for(Edge edge : edges) 
 			if(edge.getSource().equals(vertex))
