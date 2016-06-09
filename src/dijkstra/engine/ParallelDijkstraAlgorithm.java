@@ -23,7 +23,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.RecursiveAction;
 
 import dijkstra.model.Edge;
 import dijkstra.model.Graph;
@@ -34,7 +34,7 @@ public class ParallelDijkstraAlgorithm {
 	private static ForkJoinPool fork_join_pool = 
 		dijkstra.resources.Concurrency.getForkJoinPool();
 	
-	private class UnsettledNode extends RecursiveTask<Integer> 
+	private class UnsettledNode extends RecursiveAction 
 	implements Comparable<UnsettledNode> {
 
 		private final int distance;
@@ -58,9 +58,8 @@ public class ParallelDijkstraAlgorithm {
 		}
 		
 		@Override
-		public Integer compute()
+		protected void compute()
 		{
-			return null;
 		}
 	}
 	
