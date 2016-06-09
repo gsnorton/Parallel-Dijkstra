@@ -60,7 +60,6 @@ public class ParallelDijkstraAlgorithm {
 		@Override
 		protected void compute()
 		{
-
 		}
 	}
 	
