@@ -79,10 +79,6 @@ public class DijkstraAlgorithm {
 				                         final int distance) {
 			distances_from_source.put(destination, distance);
 		}
-		
-		private void addUnsettledNodeToQueue(UnsettledNode us_node) {
-			unsettled_nodes_queue.add(us_node);
-		}
 	}
 	
 	private List<Vertex> nodes;

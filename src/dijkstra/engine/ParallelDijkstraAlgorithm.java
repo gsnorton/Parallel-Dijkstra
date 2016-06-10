@@ -22,20 +22,13 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
-
 import dijkstra.model.Edge;
 import dijkstra.model.Graph;
 import dijkstra.model.Vertex;
 
 public class ParallelDijkstraAlgorithm {
 	
-	private static ForkJoinPool fork_join_pool = 
-		dijkstra.resources.Concurrency.getForkJoinPool();
-	
-	private class UnsettledNode extends RecursiveAction 
-	implements Comparable<UnsettledNode> {
+	private class UnsettledNode implements Comparable<UnsettledNode> {
 
 		private final int distance;
 		private final Vertex node;
@@ -57,14 +50,43 @@ public class ParallelDijkstraAlgorithm {
 			return (distance - other.distance);
 		}
 		
-		@Override
-		protected void compute()
-		{
+		public void findMinimalDistances() {
+			for (Vertex target : getNeighbors(node)) {
+				int dist_target = distance + getDistance(node, target);
+				if (getShortestDistance(target) > dist_target) {
+					setShortestDistance(target, dist_target);
+					UnsettledNode us_node = 
+							new UnsettledNode(dist_target, target, node);
+					unsettled_nodes_queue.add(us_node);
+				}
+			}
+		}
+		
+		private int getDistance(final Vertex node, final Vertex target) {
+			for(Edge edge : adjacencies.get(node))
+				if(edge.getDestination().equals(target))
+					return edge.getWeight();
+			
+			throw new RuntimeException("Should not happen");
+		}
+		
+		private int getShortestDistance(final Vertex destination) {
+			Integer d = distances_from_source.get(destination);
+			return (d == null) ? Integer.MAX_VALUE : d;
+		}
+		
+		private void setShortestDistance(final Vertex destination, 
+				                         final int distance) {
+			distances_from_source.put(destination, distance);
+		}
+		
+		private void addUnsettledNodeToQueue(UnsettledNode us_node) {
+			unsettled_nodes_queue.add(us_node);
 		}
 	}
 	
-	private final List<Vertex> nodes;
-	private final Map<Vertex, List<Edge>> adjacencies;
+	private List<Vertex> nodes;
+	private Map<Vertex, List<Edge>> adjacencies;
 	
 	private Queue<UnsettledNode> unsettled_nodes_queue =
 		new PriorityQueue<UnsettledNode>();
@@ -117,36 +139,12 @@ public class ParallelDijkstraAlgorithm {
 		while(false == unsettled_nodes_queue.isEmpty()) {
 			UnsettledNode us_node = unsettled_nodes_queue.poll();
 			predecessors.put(us_node.node, us_node.predecessor);
-			findMinimalDistances(us_node.node);
+			us_node.findMinimalDistances();
 		}
 	}
 	
 	public void execute(final int node_num) {
 		this.execute(nodes.get(node_num));
-	}
-
-	private void findMinimalDistances(final Vertex node) {
-		int shortest_dist_node = getShortestDistance(node);
-		for (Vertex target : getNeighbors(node)) {
-			int dist = shortest_dist_node + getDistance(node, target);
-			if (getShortestDistance(target) > dist) {
-				distances_from_source.put(target, dist);
-				unsettled_nodes_queue.add(new UnsettledNode(dist, target, node));
-			}
-		}
-	}
-
-	private int getDistance(final Vertex node, final Vertex target) {
-		for(Edge edge : adjacencies.get(node))
-			if(edge.getDestination().equals(target))
-				return edge.getWeight();
-		
-		throw new RuntimeException("Should not happen");
-	}
-
-	private int getShortestDistance(final Vertex destination) {
-		Integer d = distances_from_source.get(destination);
-		return (d == null) ? Integer.MAX_VALUE : d;
 	}
 
 	/*
