@@ -60,11 +60,11 @@ public class GridTest {
 		
 		Graph graph = new Graph(nodes, edges);
 		
-		DijkstraAlgorithm dijkstra = 
-				new DijkstraAlgorithm(graph);
+//		DijkstraAlgorithm dijkstra = 
+//				new DijkstraAlgorithm(graph);
 		
-//		ParallelDijkstraAlgorithm dijkstra = 
-//			new ParallelDijkstraAlgorithm(graph);	
+		ParallelDijkstraAlgorithm dijkstra = 
+			new ParallelDijkstraAlgorithm(graph);	
 			
 		int source = 0, start = x*y;
 		

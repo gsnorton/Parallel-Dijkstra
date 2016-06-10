@@ -26,9 +26,16 @@ import dijkstra.model.Edge;
 import dijkstra.model.Graph;
 import dijkstra.model.Vertex;
 
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
+
 public class ParallelDijkstraAlgorithm {
 	
-	private class UnsettledNode implements Comparable<UnsettledNode> {
+	private static ForkJoinPool fork_join_pool = 
+			dijkstra.resources.Concurrency.getForkJoinPool();
+	
+	private class UnsettledNode extends RecursiveAction 
+	implements Comparable<UnsettledNode> {
 
 		private final int distance;
 		private final Vertex node;
@@ -48,6 +55,11 @@ public class ParallelDijkstraAlgorithm {
 		@Override
 		public int compareTo(final UnsettledNode other) {
 			return (distance - other.distance);
+		}
+		
+		@Override
+		public void compute() {
+			
 		}
 		
 		public void findMinimalDistances() {
@@ -78,10 +90,6 @@ public class ParallelDijkstraAlgorithm {
 		private void setShortestDistance(final Vertex destination, 
 				                         final int distance) {
 			distances_from_source.put(destination, distance);
-		}
-		
-		private void addUnsettledNodeToQueue(UnsettledNode us_node) {
-			unsettled_nodes_queue.add(us_node);
 		}
 	}
 	
